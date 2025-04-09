@@ -1,73 +1,19 @@
-#include <stdio.h>      // Biblioteca para entrada e saída de dados (printf, scanf)
-#include <string.h>     // Biblioteca para manipulação de strings
-#include <ctype.h>      // Biblioteca para manipulação de caracteres (ex: tolower)
-#include <locale.h>     // Biblioteca para configuração regional (ex: acentuação)
+#include <stdio.h> // Funções de entrada e saída (ex: printf, scanf)
+#include <string.h> // Funções para manipulação de strings (ex: strcmp, strcpy, strlen)
+#include <locale.h> // Suporte a acentuação e localização (ex: setlocale)
+#include <ctype.h>// Testes e manipulação de caracteres (ex: isalpha, isdigit, isupper)
 
-#define MAX_VEICULOS 100  // Define o máximo de veículos que podem ser cadastrados
+#define TAMANHO_FROTA 100 // Define o tamanho máximo da frota
 
-// Estrutura que representa os dados de um veículo
-typedef struct {
-    char placa[11];         // Placa do veículo (ex: ABC1234)
-    char tipo[10];          // Tipo (Carro, Moto, Caminhão)
-    int anoFabricacao;      // Ano de fabricação
+// Estrutura que representa um veículo da frota
+struct Veiculo {
+    char placa[10];         // Placa do veículo no formato ABC-1234
+    char tipo[20];          // Tipo do veículo (Carro, Moto, Caminhão)
+    int anoFabricacao;      // Ano de fabricação do veículo
     float quilometragem;    // Quilometragem atual
-} Veiculo;
+};
 
-// Declaração das funções
-int exibirMenu();
-void cadastrarVeiculo(Veiculo frota[], int *total);
-void consultarVeiculo(Veiculo frota[], int total, char placa[]);
-void gerarRelatorio(Veiculo frota[], int total);
-void atualizarQuilometragem(Veiculo frota[], int total, char placa[], float novaKm);
-int validarPlaca(char placa[]);
-int validarTipo(char tipo[]);
-int validarAno(int ano);
-int encontrarVeiculo(Veiculo frota[], int total, char placa[]);
-
-int main() {
-    setlocale(LC_ALL, "");  // Ativa suporte à acentuação com base na configuração do sistema
-
-    Veiculo frota[MAX_VEICULOS]; // Vetor que armazena os veículos
-    int total = 0;               // Contador de veículos cadastrados
-    int opcao;                   // Variável para armazenar a opção escolhida
-
-    do {
-        opcao = exibirMenu();  // Mostra o menu e armazena a escolha do usuário
-
-        char placa[11];        // Para entrada da placa
-        float novaKm;          // Para nova quilometragem
-
-        switch (opcao) {
-            case 1:
-                cadastrarVeiculo(frota, &total);  // Cadastra novo veículo
-                break;
-            case 2:
-                printf("Digite a placa do veículo: ");
-                scanf("%s", placa);
-                consultarVeiculo(frota, total, placa);  // Consulta veículo pela placa
-                break;
-            case 3:
-                gerarRelatorio(frota, total);  // Mostra relatório da frota
-                break;
-            case 4:
-                printf("Digite a placa do veículo: ");
-                scanf("%s", placa);
-                printf("Digite a nova quilometragem: ");
-                scanf("%f", &novaKm);
-                atualizarQuilometragem(frota, total, placa, novaKm);  // Atualiza KM
-                break;
-            case 5:
-                printf("Encerrando o programa...\n");  // Sai do programa
-                break;
-            default:
-                printf("Opção inválida!\n");
-        }
-    } while (opcao != 5);  // Repete até o usuário escolher sair
-
-    return 0;
-}
-
-// Função que mostra o menu principal e retorna a escolha
+// Exibe o menu principal do sistema e retorna a opção escolhida pelo usuário
 int exibirMenu() {
     int opcao;
     printf("\n=== SISTEMA DE GERENCIAMENTO DE FROTA ===\n");
@@ -78,138 +24,193 @@ int exibirMenu() {
     printf("5. Sair\n");
     printf("Escolha uma opção: ");
     scanf("%d", &opcao);
-    return opcao;
+    return opcao; // Retorna a opção escolhida
 }
 
-// Função para cadastrar novo veículo
-void cadastrarVeiculo(Veiculo frota[], int *total) {
-    if (*total >= MAX_VEICULOS) {
-        printf("Limite máximo de veículos atingido!\n");
+// Valida se a placa está no formato correto ABC-1234
+int validarPlaca(char placa[]) {
+    // Verifica se a placa tem 8 caracteres e o caractere '-' está na posição 3
+    if (strlen(placa) != 8 || placa[3] != '-') return 0;
+
+    // Verifica se os três primeiros caracteres são letras maiúsculas
+    for (int i = 0; i < 3; i++) {
+        if (!isalpha(placa[i]) || !isupper(placa[i])) return 0;
+    }
+
+    // Verifica se os quatro últimos caracteres são dígitos numéricos
+    for (int i = 4; i < 8; i++) {
+        if (!isdigit(placa[i])) return 0;
+    }
+
+    return 1; // A placa está válida
+}
+
+// Cadastra um novo veículo na frota
+void cadastrarVeiculo(struct Veiculo frota[], int* totalVeiculos) {
+    // Verifica se já atingiu o limite da frota
+    if (*totalVeiculos >= TAMANHO_FROTA) {
+        printf("Limite de veículos atingido.\n");
         return;
     }
 
-    Veiculo v;
+    struct Veiculo v; // Cria uma variável temporária do tipo Veiculo
 
-    printf("Digite a placa do veículo (formato ABC1234): ");
+    // Solicita a placa e valida o formato
+    printf("Digite a placa do veículo (formato ABC-1234): ");
     scanf("%s", v.placa);
+
     if (!validarPlaca(v.placa)) {
         printf("Placa inválida!\n");
         return;
     }
 
-    printf("Digite o tipo do veículo (Carro, Moto ou Caminhão): ");
+    // Solicita o tipo do veículo
+    printf("Digite o tipo do veículo (Carro, Moto, Caminhão): ");
     scanf("%s", v.tipo);
-    if (!validarTipo(v.tipo)) {
-        printf("Tipo inválido! Use Carro, Moto ou Caminhão.\n");
-        return;
-    }
 
+    // Solicita o ano de fabricação e valida o intervalo
     printf("Digite o ano de fabricação (1980 a 2025): ");
     scanf("%d", &v.anoFabricacao);
-    if (!validarAno(v.anoFabricacao)) {
-        printf("Ano de fabricação inválido!\n");
+    if (v.anoFabricacao < 1980 || v.anoFabricacao > 2025) {
+        printf("Ano inválido!\n");
         return;
     }
 
+    // Solicita a quilometragem atual e valida se é não negativa
     printf("Digite a quilometragem atual: ");
     scanf("%f", &v.quilometragem);
-    if (v.quilometragem <= 0) {
+    if (v.quilometragem < 0) {
         printf("Quilometragem inválida!\n");
         return;
     }
 
-    frota[*total] = v;   // Adiciona veículo no vetor
-    (*total)++;          // Atualiza o total de veículos
+    // Adiciona o veículo no array da frota
+    frota[*totalVeiculos] = v;
+    (*totalVeiculos)++; // Atualiza o total de veículos cadastrados
+
     printf("Veículo cadastrado com sucesso!\n");
 }
 
-// Função para consultar um veículo pela placa
-void consultarVeiculo(Veiculo frota[], int total, char placa[]) {
-    int i = encontrarVeiculo(frota, total, placa);
-    if (i == -1) {
-        printf("Veículo não encontrado!\n");
-        return;
+// Consulta um veículo pela placa
+void consultarVeiculo(struct Veiculo frota[], int totalVeiculos, char placa[]) {
+    // Percorre todos os veículos cadastrados
+    for (int i = 0; i < totalVeiculos; i++) {
+        // Compara as placas para encontrar o veículo
+        if (strcmp(frota[i].placa, placa) == 0) {
+            // Exibe os dados do veículo encontrado
+            printf("\nDADOS DO VEÍCULO:\n");
+            printf("Placa: %s\n", frota[i].placa);
+            printf("Tipo: %s\n", frota[i].tipo);
+            printf("Ano de Fabricação: %d\n", frota[i].anoFabricacao);
+            printf("Quilometragem: %.2f\n", frota[i].quilometragem);
+            return;
+        }
     }
-
-    printf("=== DADOS DO VEÍCULO ===\n");
-    printf("Placa: %s\n", frota[i].placa);
-    printf("Tipo: %s\n", frota[i].tipo);
-    printf("Ano de fabricação: %d\n", frota[i].anoFabricacao);
-    printf("Quilometragem: %.1f km\n", frota[i].quilometragem);
+    // Se não encontrar
+    printf("Veículo não encontrado.\n");
 }
 
-// Gera relatório com estatísticas da frota
-void gerarRelatorio(Veiculo frota[], int total) {
-    if (total == 0) {
+// Gera e exibe o relatório da frota
+void gerarRelatorio(struct Veiculo frota[], int totalVeiculos) {
+    // Verifica se há veículos cadastrados
+    if (totalVeiculos == 0) {
         printf("Nenhum veículo cadastrado.\n");
         return;
     }
 
     float somaKm = 0;
-    int maisAntigo = 0, maisNovo = 0;
+    int maisAntigo = frota[0].anoFabricacao;
+    int maisNovo = frota[0].anoFabricacao;
+    char placaAntigo[10], placaNovo[10];
 
-    for (int i = 0; i < total; i++) {
-        somaKm += frota[i].quilometragem;
+    // Inicializa com o primeiro veículo da frota
+    strcpy(placaAntigo, frota[0].placa);
+    strcpy(placaNovo, frota[0].placa);
 
-        if (frota[i].anoFabricacao < frota[maisAntigo].anoFabricacao)
-            maisAntigo = i;
+    // Percorre todos os veículos para coletar os dados
+    for (int i = 0; i < totalVeiculos; i++) {
+        somaKm += frota[i].quilometragem; // Soma total da quilometragem
 
-        if (frota[i].anoFabricacao > frota[maisNovo].anoFabricacao)
-            maisNovo = i;
+        // Verifica o veículo mais antigo
+        if (frota[i].anoFabricacao < maisAntigo) {
+            maisAntigo = frota[i].anoFabricacao;
+            strcpy(placaAntigo, frota[i].placa);
+        }
+
+        // Verifica o mais novo
+        if (frota[i].anoFabricacao > maisNovo) {
+            maisNovo = frota[i].anoFabricacao;
+            strcpy(placaNovo, frota[i].placa);
+        }
     }
 
-    printf("=== RELATÓRIO DA FROTA ===\n");
-    printf("Total de veículos: %d\n", total);
-    printf("Média de quilometragem: %.1f km\n", somaKm / total);
-    printf("Veículo mais antigo: %s (%d)\n", frota[maisAntigo].placa, frota[maisAntigo].anoFabricacao);
-    printf("Veículo mais novo: %s (%d)\n", frota[maisNovo].placa, frota[maisNovo].anoFabricacao);
+    // Exibe os resultados do relatório
+    printf("\nRELATÓRIO DA FROTA\n");
+    printf("Total de veículos cadastrados: %d\n", totalVeiculos);
+    printf("Média de quilometragem: %.2f\n", somaKm / totalVeiculos);
+    printf("Veículo mais antigo: Placa %s, Ano %d\n", placaAntigo, maisAntigo);
+    printf("Veículo mais novo: Placa %s, Ano %d\n", placaNovo, maisNovo);
 }
 
-// Atualiza a quilometragem do veículo
-void atualizarQuilometragem(Veiculo frota[], int total, char placa[], float novaKm) {
-    int i = encontrarVeiculo(frota, total, placa);
-    if (i == -1) {
-        printf("Veículo não encontrado!\n");
-        return;
+// Atualiza a quilometragem de um veículo específico
+void atualizarQuilometragem(struct Veiculo frota[], int totalVeiculos, char placa[], float novaQuilometragem) {
+    // Percorre a frota para encontrar o veículo
+    for (int i = 0; i < totalVeiculos; i++) {
+        if (strcmp(frota[i].placa, placa) == 0) {
+            if (novaQuilometragem < 0) {
+                printf("Quilometragem inválida!\n");
+                return;
+            }
+            frota[i].quilometragem = novaQuilometragem; // Atualiza a quilometragem
+            printf("Quilometragem atualizada com sucesso!\n");
+            return;
+        }
     }
-
-    if (novaKm < frota[i].quilometragem) {
-        printf("Erro: nova quilometragem não pode ser menor que a atual.\n");
-        return;
-    }
-
-    frota[i].quilometragem = novaKm;
-    printf("Quilometragem atualizada com sucesso!\n");
+    // Caso a placa não seja encontrada
+    printf("Veículo não encontrado.\n");
 }
 
-// Verifica se a placa é válida (mínimo 7 caracteres)
-int validarPlaca(char placa[]) {
-    return strlen(placa) >= 7;
-}
+// Função principal que controla o sistema
+int main() {
+    setlocale(LC_ALL, ""); // Ativa suporte a acentuação no terminal (Windows)
 
-// Valida se o tipo é Carro, Moto ou Caminhão (case insensitive)
-int validarTipo(char tipo[]) {
-    char tipoFormatado[10];
-    for (int i = 0; i < strlen(tipo); i++) {
-        tipoFormatado[i] = tolower(tipo[i]);
-    }
-    tipoFormatado[strlen(tipo)] = '\0';
+    struct Veiculo frota[TAMANHO_FROTA]; // Array que armazena todos os veículos
+    int totalVeiculos = 0;               // Contador de veículos cadastrados
+    int opcao;                           // Armazena a opção do menu
+    char placaBusca[10];                // Armazena a placa digitada para consulta ou atualização
+    float novaQuilometragem;            // Armazena nova quilometragem
 
-    return (strcmp(tipoFormatado, "carro") == 0 ||
-            strcmp(tipoFormatado, "moto") == 0 ||
-            strcmp(tipoFormatado, "caminhão") == 0);
-}
+    // Loop principal do sistema
+    do {
+        opcao = exibirMenu(); // Exibe menu e recebe opção
 
-// Verifica se o ano está no intervalo permitido
-int validarAno(int ano) {
-    return ano >= 1980 && ano <= 2025;
-}
+        switch (opcao) {
+            case 1:
+                cadastrarVeiculo(frota, &totalVeiculos);
+                break;
+            case 2:
+                printf("Digite a placa do veículo: ");
+                scanf("%s", placaBusca);
+                consultarVeiculo(frota, totalVeiculos, placaBusca);
+                break;
+            case 3:
+                gerarRelatorio(frota, totalVeiculos);
+                break;
+            case 4:
+                printf("Digite a placa do veículo: ");
+                scanf("%s", placaBusca);
+                printf("Digite a nova quilometragem: ");
+                scanf("%f", &novaQuilometragem);
+                atualizarQuilometragem(frota, totalVeiculos, placaBusca, novaQuilometragem);
+                break;
+            case 5:
+                printf("Saindo do programa...\n");
+                break;
+            default:
+                printf("Opção inválida!\n");
+        }
 
-// Procura veículo pela placa e retorna índice (ou -1 se não encontrado)
-int encontrarVeiculo(Veiculo frota[], int total, char placa[]) {
-    for (int i = 0; i < total; i++) {
-        if (strcmp(frota[i].placa, placa) == 0)
-            return i;
-    }
-    return -1;
+    } while (opcao != 5); // Continua até o usuário escolher sair
+
+    return 0; // Finaliza o programa
 }
