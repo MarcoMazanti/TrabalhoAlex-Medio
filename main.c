@@ -5,12 +5,6 @@
 
 #define TAMANHO_FROTA 100 // Define o tamanho máximo da frota
 
-void toLowerCase(char *);
-
-int validationCarType(char *);
-
-void formartValidation(const char *, void *);
-
 // Estrutura que representa um veículo da frota
 struct Veiculo {
     char placa[10];         // Placa do veículo no formato ABC-1234
@@ -74,27 +68,17 @@ void cadastrarVeiculo(struct Veiculo frota[], int* totalVeiculos) {
     printf("Digite o tipo do veículo (Carro, Moto, Caminhão): ");
     scanf("%s", v.tipo);
 
-    if (validationCarType(v.tipo) == 1) {
-        printf("Tipo de veículo inválido!\n");
-        return;
-    }
-
     // Solicita o ano de fabricação e valida o intervalo
     printf("Digite o ano de fabricação (1980 a 2025): ");
-
-    formartValidation("%d", &v.anoFabricacao);
-
+    scanf("%d", &v.anoFabricacao);
     if (v.anoFabricacao < 1980 || v.anoFabricacao > 2025) {
         printf("Ano inválido!\n");
         return;
     }
 
-
     // Solicita a quilometragem atual e valida se é não negativa
-
     printf("Digite a quilometragem atual: ");
-    formartValidation("%f", &v.quilometragem);
-
+    scanf("%f", &v.quilometragem);
     if (v.quilometragem < 0) {
         printf("Quilometragem inválida!\n");
         return;
@@ -229,35 +213,4 @@ int main() {
     } while (opcao != 5); // Continua até o usuário escolher sair
 
     return 0; // Finaliza o programa
-}
-
-void toLowerCase(char *str) {
-    for (int i = 0; str[i] != '\0'; i++) {
-        str[i] = tolower(str[i]);
-    }
-}
-
-int validationCarType(char *tipo) {
-
-    toLowerCase(tipo);
-
-    if (strcmp(tipo, "carro") == 0 || strcmp(tipo, "moto") == 0 || strcmp(tipo, "caminhao") == 0) {
-        return 0; // Válido
-    } else {
-        return 1; // Inválido
-    }
-
-
-}
-
-
-void formartValidation(const char *formato, void *variavel) {
-    int sucesso;
-    do {
-        sucesso = scanf(formato, variavel);  // Lê o valor e armazena na variável
-        if (sucesso != 1) {
-            printf("Entrada inválida! Tente novamente.\n");
-            while (getchar() != '\n'); // Limpa o buffer de entrada
-        }
-    } while (sucesso != 1);  // Repete até uma entrada válida ser dada
 }
