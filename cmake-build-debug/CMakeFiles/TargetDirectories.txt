@@ -1,0 +1,3 @@
+C:/Users/Thimo/CLionProjects/Frota/cmake-build-debug/CMakeFiles/Frota.dir
+C:/Users/Thimo/CLionProjects/Frota/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Thimo/CLionProjects/Frota/cmake-build-debug/CMakeFiles/rebuild_cache.dir
